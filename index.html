@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Birthday Registration</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+    :root{
+        --violet-900:#2e1f4d;
+        --violet-700:#5b3e8e;
+        --violet-500:#7c5cd6;
+        --violet-100:#efe9fb;
+        --coral:#ff6f61;
+        --ink:#2b2440;
+        --muted:#6f677f;
+        --paper:#ffffff;
+        --line:#e6e1f2;
+        --success-bg:#e4f7ea; --success-fg:#1c6b3a; --success-line:#bfe8cd;
+        --error-bg:#fdeceb;  --error-fg:#9c2b22;  --error-line:#f6c6c1;
+        --loading-bg:#fff6e0; --loading-fg:#8a6314; --loading-line:#f3e0a6;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+
+    body{
+        font-family:'Inter',sans-serif;
+        color:var(--ink);
+        line-height:1.6;
+        min-height:100vh;
+        padding:32px 16px;
+        background:
+            radial-gradient(circle at 15% 10%, rgba(255,111,97,0.35), transparent 45%),
+            radial-gradient(circle at 85% 90%, rgba(124,92,214,0.45), transparent 50%),
+            linear-gradient(160deg, var(--violet-900) 0%, var(--violet-700) 55%, var(--violet-500) 100%);
+    }
+
+    .container{
+        max-width:480px;
+        margin:0 auto;
+        background:var(--paper);
+        border-radius:20px;
+        box-shadow:0 25px 60px rgba(46,31,77,0.35);
+        overflow:hidden;
+    }
+
+    .header{
+        background:linear-gradient(135deg, var(--violet-700), var(--violet-500));
+        color:#fff;
+        padding:36px 28px 30px;
+        text-align:center;
+        position:relative;
+    }
+    .header .icon-badge{
+        width:56px;height:56px;
+        border-radius:50%;
+        background:rgba(255,255,255,0.18);
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto 14px;
+        font-size:1.5rem;
+    }
+    .header h1{
+        font-family:'Fredoka',sans-serif;
+        font-size:1.7rem;
+        font-weight:600;
+        margin-bottom:6px;
+        letter-spacing:0.2px;
+    }
+    .header p{
+        font-size:0.95rem;
+        opacity:0.85;
+        max-width:320px;
+        margin:0 auto;
+    }
+
+    .content{padding:30px 28px 32px;}
+
+    .form-group{margin-bottom:18px;}
+
+    label{
+        display:flex;
+        align-items:center;
+        gap:7px;
+        margin-bottom:7px;
+        font-weight:600;
+        color:var(--ink);
+        font-size:0.9rem;
+    }
+    label i{color:var(--violet-500); width:16px; text-align:center;}
+    .required::after{content:" *"; color:var(--coral);}
+
+    .input-wrap{position:relative;}
+    .input-wrap i.field-icon{
+        position:absolute;
+        left:16px; top:50%; transform:translateY(-50%);
+        color:#b5abd6;
+        font-size:0.95rem;
+        pointer-events:none;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"]{
+        width:100%;
+        padding:13px 16px 13px 42px;
+        border:1.5px solid var(--line);
+        border-radius:10px;
+        font-size:15px;
+        font-family:'Inter',sans-serif;
+        background:#faf9fd;
+        transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    input:focus{
+        outline:none;
+        border-color:var(--violet-500);
+        background:#fff;
+        box-shadow:0 0 0 3px rgba(124,92,214,0.15);
+    }
+
+    /* File input styled as a button-like drop zone */
+    .file-drop{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:12px 16px;
+        border:1.5px dashed var(--line);
+        border-radius:10px;
+        background:#faf9fd;
+        cursor:pointer;
+        transition:border-color .2s ease, background .2s ease;
+    }
+    .file-drop:hover{border-color:var(--violet-500); background:#fff;}
+    .file-drop i{color:var(--violet-500);}
+    .file-drop span{font-size:0.9rem; color:var(--muted);}
+    .file-drop input[type="file"]{
+        position:absolute; width:1px; height:1px; opacity:0; overflow:hidden;
+    }
+    .file-name{font-size:0.82rem; color:var(--violet-700); margin-top:6px; font-weight:600;}
+
+    button[type="submit"]{
+        background:linear-gradient(135deg, var(--violet-700), var(--violet-500));
+        color:#fff;
+        padding:15px 24px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        font-size:15.5px;
+        font-family:'Inter',sans-serif;
+        font-weight:600;
+        width:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:9px;
+        margin-top:6px;
+        transition:transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+    button[type="submit"]:hover{
+        transform:translateY(-2px);
+        box-shadow:0 10px 24px rgba(91,62,142,0.35);
+    }
+    button[type="submit"]:disabled{
+        opacity:0.6;
+        cursor:not-allowed;
+        transform:none;
+        box-shadow:none;
+    }
+
+    #status{
+        margin-top:18px;
+        padding:13px 15px;
+        border-radius:10px;
+        text-align:center;
+        font-weight:600;
+        font-size:0.9rem;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+    }
+    .success{background:var(--success-bg); color:var(--success-fg); border:1.5px solid var(--success-line); display:flex !important;}
+    .error{background:var(--error-bg); color:var(--error-fg); border:1.5px solid var(--error-line); display:flex !important;}
+    .loading{background:var(--loading-bg); color:var(--loading-fg); border:1.5px solid var(--loading-line); display:flex !important;}
+
+    .spinner{
+        display:inline-block;
+        width:16px; height:16px;
+        border:2.5px solid rgba(255,255,255,.4);
+        border-radius:50%;
+        border-top-color:#fff;
+        animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* Modal */
+    .modal-overlay{
+        display:none;
+        position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(46,31,77,0.55);
+        z-index:1000;
+        justify-content:center; align-items:center;
+        padding:20px;
+    }
+    .modal{
+        background:#fff;
+        padding:38px 32px;
+        border-radius:18px;
+        text-align:center;
+        max-width:380px; width:100%;
+        box-shadow:0 25px 60px rgba(0,0,0,0.35);
+    }
+    .modal .icon-badge{
+        width:60px;height:60px;
+        border-radius:50%;
+        background:var(--violet-100);
+        color:var(--violet-700);
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto 18px;
+        font-size:1.6rem;
+    }
+    .modal h2{
+        font-family:'Fredoka',sans-serif;
+        margin-bottom:10px;
+        color:var(--violet-700);
+        font-size:1.3rem;
+    }
+    .modal p{margin-bottom:24px; color:var(--muted); font-size:0.92rem;}
+    .modal-button{
+        padding:12px 28px;
+        background:var(--violet-700);
+        color:#fff;
+        border:none;
+        border-radius:9px;
+        cursor:pointer;
+        font-size:15px;
+        font-weight:600;
+        transition:background .2s ease, transform .2s ease;
+    }
+    .modal-button:hover{background:var(--violet-500); transform:translateY(-1px);}
+
+    @media (max-width:480px){
+        .content{padding:24px 20px 28px;}
+        .header{padding:30px 20px 26px;}
+    }
+
+    /* Developer credit footer */
+    .dev-footer{
+        max-width:480px;
+        margin:24px auto 0;
+        text-align:center;
+        color:rgba(255,255,255,0.85);
+        font-size:0.85rem;
+    }
+    .dev-footer .dev-line{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-bottom:12px;
+    }
+    .dev-footer .dev-name{
+        font-family:'Fredoka',sans-serif;
+        font-weight:600;
+        color:#fff;
+    }
+    .dev-footer .dev-links{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:14px;
+    }
+    .dev-footer .dev-links a{
+        color:rgba(255,255,255,0.75);
+        font-size:1.05rem;
+        transition:color .2s ease, transform .2s ease;
+    }
+    .dev-footer .dev-links a:hover{
+        color:var(--lime, #fff);
+        transform:translateY(-2px);
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="icon-badge"><i class="fa-solid fa-cake-candles"></i></div>
+        <h1>Birthday Registration</h1>
+        <p>Enter your details so we can celebrate with you</p>
+    </div>
+
+    <div class="content">
+        <form id="birthdayForm">
+            <div class="form-group">
+                <label class="required" for="nameInput"><i class="fa-solid fa-user"></i>Full name</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-user field-icon"></i>
+                    <input type="text" name="name" id="nameInput" placeholder="Enter your full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="required" for="emailInput"><i class="fa-solid fa-envelope"></i>Email address</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-envelope field-icon"></i>
+                    <input type="email" name="email" id="emailInput" placeholder="your.email@example.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phoneInput"><i class="fa-solid fa-phone"></i>Phone number (optional)</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-phone field-icon"></i>
+                    <input type="tel" name="phone" id="phoneInput" placeholder="+1 234 567 8900">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="required" for="birthdayInput"><i class="fa-solid fa-calendar-days"></i>Birthday</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-calendar-days field-icon"></i>
+                    <input type="date" name="birthday" required id="birthdayInput">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="photoInput"><i class="fa-solid fa-camera"></i>Photo (optional)</label>
+                <label class="file-drop" for="photoInput">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span id="fileLabel">Click to upload a photo</span>
+                    <input type="file" name="photo" accept="image/*" id="photoInput">
+                </label>
+                <div class="file-name" id="fileNameDisplay"></div>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <i class="fa-solid fa-gift" id="btnIcon"></i>
+                <span id="btnText">Register birthday</span>
+                <span class="spinner" id="spinner" style="display:none;"></span>
+            </button>
+        </form>
+
+        <div id="status"></div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="successModal">
+    <div class="modal">
+        <div class="icon-badge"><i class="fa-solid fa-champagne-glasses"></i></div>
+        <h2>Registration successful!</h2>
+        <p>Your birthday has been saved. The admin will be notified on your special day.</p>
+        <button class="modal-button" onclick="closeSuccessModal()">Close</button>
+    </div>
+</div>
+
+<footer class="dev-footer">
+    <div class="dev-line">
+        <i class="fa-solid fa-code"></i>
+        <span>Built by <span class="dev-name">Azakaye Courage</span> — Coding With Courbyte</span>
+    </div>
+    <div class="dev-links">
+        <a href="https://github.com/Courbyte" target="_blank" rel="noopener" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+        <a href="https://wa.me/2349073056998" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="mailto:codingwithcourbyte@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
+        <a href="https://x.com/coding_courbyte" target="_blank" rel="noopener" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://www.instagram.com/coding_with_courbyte/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+    </div>
+</footer>
+
+<script>
+(function(){
+// ============================================
+// SUPABASE CONFIGURATION — replace with your own
+// ============================================
+const SUPABASE_URL = "https://lyobzlsggqmuwampgftc.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_LgkpjXyvqJXnhI3qcFjDwA_jHDB9oWw";
+
+// Named "sb" (not "supabase") on purpose — the library itself exposes
+// a global called window.supabase, and reusing that name for our own
+// client caused a "supabase has already been declared" error in some
+// environments (e.g. live-reload tools that re-run this script).
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let isSubmitting = false;
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function showStatus(message, type, icon){
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = (icon ? `<i class="fa-solid ${icon}"></i> ` : '') + message;
+    statusDiv.className = type;
+    if(type === 'success'){
+        setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+    }
+}
+
+function showSuccessModal(){ document.getElementById('successModal').style.display = 'flex'; }
+function closeSuccessModal(){ document.getElementById('successModal').style.display = 'none'; }
+
+function formatPhoneNumber(phone){
+    if(!phone) return '';
+    const cleaned = phone.replace(/\D/g, '');
+    if(cleaned.length === 10) return `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
+    if(cleaned.length === 11 && cleaned.startsWith('1')) return `+1 (${cleaned.slice(1,4)}) ${cleaned.slice(4,7)}-${cleaned.slice(7)}`;
+    return phone;
+}
+
+function validateBirthday(dateStr){
+    const birthday = new Date(dateStr);
+    const today = new Date();
+    if(isNaN(birthday.getTime())) return "Invalid date format";
+    if(birthday > today) return "Birthday cannot be in the future";
+    if(birthday.getFullYear() < 1900) return "Birth year must be after 1900";
+    return null;
+}
+
+// Draft recovery (per-browser convenience only)
+function saveFormData(formData){
+    try{ localStorage.setItem('birthdayFormData', JSON.stringify(formData)); }catch(e){}
+}
+function loadFormData(){
+    try{
+        const saved = localStorage.getItem('birthdayFormData');
+        if(saved){
+            const fd = JSON.parse(saved);
+            document.querySelector('[name="name"]').value = fd.name || '';
+            document.querySelector('[name="email"]').value = fd.email || '';
+            document.querySelector('[name="phone"]').value = fd.phone || '';
+            document.querySelector('[name="birthday"]').value = fd.birthday || '';
+        }
+    }catch(e){ try{ localStorage.removeItem('birthdayFormData'); }catch(e2){} }
+}
+window.clearSavedFormData = () => { try{ localStorage.removeItem('birthdayFormData'); }catch(e){} };
+
+// ============================================
+// IMAGE UPLOAD
+// ============================================
+async function uploadImage(file){
+    if(!file) return null;
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const fileName = `${Date.now()}-${safeName}`;
+    const { data, error } = await sb.storage
+        .from('avatars')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+    if(error) throw new Error('Image upload failed: ' + error.message);
+    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(data.path);
+    return urlData.publicUrl;
+}
+
+// ============================================
+// FORM SUBMISSION
+// ============================================
+document.getElementById('birthdayForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(isSubmitting) return;
+
+    const form = this;
+    const formData = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        phone: formatPhoneNumber(form.phone.value.trim()),
+        birthday: form.birthday.value
+    };
+
+    if(!formData.name || !formData.email || !formData.birthday){
+        showStatus("Please fill in all required fields.", "error", "fa-circle-exclamation");
+        return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(formData.email)){
+        showStatus("Please enter a valid email address.", "error", "fa-circle-exclamation");
+        return;
+    }
+    const birthdayError = validateBirthday(formData.birthday);
+    if(birthdayError){
+        showStatus(birthdayError, "error", "fa-circle-exclamation");
+        return;
+    }
+
+    saveFormData(formData);
+
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    const spinner = document.getElementById('spinner');
+
+    isSubmitting = true;
+    submitBtn.disabled = true;
+    btnText.textContent = "Processing...";
+    btnIcon.style.display = 'none';
+    spinner.style.display = 'inline-block';
+    showStatus("Saving your information...", "loading", "fa-hourglass-half");
+
+    try{
+        const photoFile = document.getElementById('photoInput').files[0];
+        let imageUrl = null;
+        if(photoFile){
+            imageUrl = await uploadImage(photoFile);
+        }
+
+        const { error } = await sb
+            .from('birthdays')
+            .insert([{
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                birthday: formData.birthday,
+                image_url: imageUrl
+            }]);
+
+        if(error) throw new Error(error.message);
+
+        showStatus("You're all set! The admin will be notified on your birthday.", "success", "fa-circle-check");
+        showSuccessModal();
+        form.reset();
+        document.getElementById('fileLabel').textContent = 'Click to upload a photo';
+        document.getElementById('fileNameDisplay').textContent = '';
+        window.clearSavedFormData();
+
+    }catch(error){
+        let message = error.message;
+        if(message.includes('Failed to fetch')) message = 'Network error. Please check your connection and try again.';
+        showStatus(message, "error", "fa-circle-exclamation");
+        console.error('Submission error:', error);
+    }finally{
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        btnText.textContent = "Register birthday";
+        btnIcon.style.display = 'inline-block';
+        spinner.style.display = 'none';
+    }
+});
+
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', function(){
+    loadFormData();
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('birthdayInput').max = todayStr;
+
+    const defaultDate = new Date();
+    defaultDate.setFullYear(2000);
+    document.getElementById('birthdayInput').value = defaultDate.toISOString().split('T')[0];
+
+    document.getElementById('photoInput').addEventListener('change', function(){
+        const file = this.files[0];
+        document.getElementById('fileLabel').textContent = file ? 'Photo selected' : 'Click to upload a photo';
+        document.getElementById('fileNameDisplay').textContent = file ? file.name : '';
+    });
+
+    const formInputs = document.querySelectorAll('#birthdayForm input[type="text"], #birthdayForm input[type="email"], #birthdayForm input[type="tel"], #birthdayForm input[type="date"]');
+    formInputs.forEach(input => {
+        input.addEventListener('input', function(){
+            const fd = {
+                name: document.querySelector('[name="name"]').value.trim(),
+                email: document.querySelector('[name="email"]').value.trim(),
+                phone: document.querySelector('[name="phone"]').value.trim(),
+                birthday: document.querySelector('[name="birthday"]').value
+            };
+            saveFormData(fd);
+        });
+    });
+
+    setTimeout(window.clearSavedFormData, 24 * 60 * 60 * 1000);
+});
+})();
+</script>
+</body>
+</html>
