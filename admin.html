@@ -16,6 +16,7 @@
         --violet-900:#2e1f4d; --violet-700:#5b3e8e; --violet-500:#7c5cd6; --violet-100:#efe9fb;
         --coral:#ff6f61; --ink:#2b2440; --muted:#6f677f; --paper:#ffffff; --line:#e6e1f2;
         --today-bg:#fff2e0; --today-line:#f6c97a; --today-fg:#8a5a00;
+        --danger:#e05a4a; --danger-bg:#fdeceb; --danger-line:#f6c6c1;
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{
@@ -42,16 +43,28 @@
     .login-wrap label{display:block;text-align:left;font-size:0.85rem;font-weight:600;margin:0 0 6px;color:var(--ink);}
     .login-wrap input{
         width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:9px;
-        font-size:15px;margin-bottom:14px;background:#faf9fd;font-family:'Inter',sans-serif;
+        font-size:15px;background:#faf9fd;font-family:'Inter',sans-serif;
     }
     .login-wrap input:focus{outline:none;border-color:var(--violet-500);background:#fff;}
     .login-wrap button{
         width:100%;padding:13px;border:none;border-radius:9px;cursor:pointer;
         background:linear-gradient(135deg,var(--violet-700),var(--violet-500));color:#fff;
         font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;
+        margin-top:6px;
     }
     .login-wrap button:disabled{opacity:0.6;cursor:not-allowed;}
     #loginError{color:#9c2b22;font-size:0.85rem;margin-top:12px;display:none;}
+
+    /* ---- Password field with show/hide toggle ---- */
+    .pwd-wrap{position:relative;margin-bottom:14px;}
+    .pwd-wrap input{margin-bottom:0;padding-right:44px;}
+    .pwd-toggle{
+        position:absolute; right:4px; top:4px; bottom:4px;
+        width:36px; border:none; background:none; cursor:pointer;
+        color:var(--muted); display:flex; align-items:center; justify-content:center;
+        border-radius:6px; transition:color .2s ease, background .2s ease;
+    }
+    .pwd-toggle:hover{color:var(--violet-700); background:var(--violet-100);}
 
     /* ---- Dashboard ---- */
     .dash{max-width:840px;margin:0 auto;display:none;}
@@ -66,6 +79,20 @@
         cursor:pointer;font-size:0.85rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;
     }
     .dash-header button:hover{border-color:var(--coral);color:var(--coral);}
+
+    /* ---- Tabs ---- */
+    .tabs{display:flex;gap:8px;margin-bottom:18px;}
+    .tab-btn{
+        flex:1;background:var(--paper);border:1.5px solid transparent;border-radius:12px;
+        padding:12px 16px;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;
+        color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;
+        box-shadow:0 8px 20px rgba(46,31,77,0.12);transition:all .2s ease;
+    }
+    .tab-btn.active{color:var(--violet-700);border-color:var(--violet-500);background:var(--violet-100);}
+    .tab-btn:hover:not(.active){color:var(--violet-700);}
+
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
 
     .stats{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
     .stat-card{
@@ -108,13 +135,80 @@
     .row-actions button{
         background:none;border:none;color:#c9c2dd;cursor:pointer;font-size:0.95rem;padding:8px;
     }
-    .row-actions button:hover{color:#e05a4a;}
+    .row-actions button:hover{color:var(--danger);}
     .empty-state{padding:40px 20px;text-align:center;color:var(--muted);}
     .empty-state i{font-size:1.8rem;color:var(--violet-100);margin-bottom:10px;display:block;}
+
+    /* ---- Audit log ---- */
+    .audit-row{
+        display:flex;align-items:flex-start;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);
+    }
+    .audit-row:last-child{border-bottom:none;}
+    .audit-icon{
+        width:36px;height:36px;border-radius:50%;flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;font-size:0.9rem;
+    }
+    .audit-icon.login{background:#e4f7ea;color:#1c6b3a;}
+    .audit-icon.delete{background:var(--danger-bg);color:var(--danger);}
+    .audit-info{flex:1;min-width:0;}
+    .audit-info .line1{font-size:0.9rem;font-weight:600;}
+    .audit-info .line2{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+    .audit-time{font-size:0.78rem;color:var(--muted);white-space:nowrap;}
+
+    /* ---- Confirm-delete modal ---- */
+    .modal-overlay{
+        display:none;
+        position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(46,31,77,0.55);
+        z-index:1000;
+        justify-content:center; align-items:center;
+        padding:20px;
+    }
+    .modal-overlay.open{display:flex;}
+    .modal{
+        background:#fff;
+        padding:32px 30px;
+        border-radius:18px;
+        text-align:center;
+        max-width:380px; width:100%;
+        box-shadow:0 25px 60px rgba(0,0,0,0.35);
+    }
+    .modal .icon-badge{
+        width:56px;height:56px;
+        border-radius:50%;
+        background:var(--danger-bg);
+        color:var(--danger);
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto 16px;
+        font-size:1.4rem;
+    }
+    .modal h2{
+        font-family:'Fredoka',sans-serif;
+        margin-bottom:8px;
+        color:var(--ink);
+        font-size:1.2rem;
+    }
+    .modal .warn-text{color:var(--danger);font-weight:600;font-size:0.85rem;margin-bottom:4px;}
+    .modal p{margin-bottom:16px; color:var(--muted); font-size:0.9rem;}
+    .modal p strong{color:var(--ink);}
+    .modal label{display:block;text-align:left;font-size:0.82rem;font-weight:600;margin:0 0 6px;color:var(--ink);}
+    .modal-actions{display:flex;gap:10px;margin-top:18px;}
+    .modal-actions button{
+        flex:1;padding:12px;border-radius:9px;cursor:pointer;font-weight:600;font-size:0.92rem;
+        display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-cancel{background:var(--violet-100);border:none;color:var(--violet-700);}
+    .btn-cancel:hover{background:#e4dcf7;}
+    .btn-danger{background:var(--danger);border:none;color:#fff;}
+    .btn-danger:hover{background:#c94434;}
+    .btn-danger:disabled{opacity:0.6;cursor:not-allowed;}
+    #deleteError{color:#9c2b22;font-size:0.82rem;margin-top:10px;display:none;text-align:left;}
 
     @media (max-width:480px){
         .row-info .meta{white-space:normal;}
         .row-date{display:none;}
+        .tabs{flex-direction:row;}
+        .tab-btn{font-size:0.8rem;padding:10px 8px;}
     }
 </style>
 </head>
@@ -127,9 +221,14 @@
     <p>Sign in to view and manage birthday registrations</p>
     <form id="loginForm">
         <label for="loginEmail">Email</label>
-        <input type="email" id="loginEmail" required autocomplete="username">
+        <input type="email" id="loginEmail" required autocomplete="username" style="margin-bottom:14px;">
         <label for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" required autocomplete="current-password">
+        <div class="pwd-wrap">
+            <input type="password" id="loginPassword" required autocomplete="current-password">
+            <button type="button" class="pwd-toggle" data-target="loginPassword" aria-label="Show password">
+                <i class="fa-solid fa-eye"></i>
+            </button>
+        </div>
         <button type="submit" id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> Sign in</button>
     </form>
     <div id="loginError"></div>
@@ -142,29 +241,72 @@
         <button id="signOutBtn"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
     </div>
 
-    <div class="stats">
-        <div class="stat-card">
-            <div class="num" id="statTotal">0</div>
-            <div class="label">Total registered</div>
-        </div>
-        <div class="stat-card">
-            <div class="num" id="statToday">0</div>
-            <div class="label">Celebrating today</div>
-        </div>
-        <div class="stat-card">
-            <div class="num" id="statWeek">0</div>
-            <div class="label">In the next 7 days</div>
-        </div>
+    <div class="tabs">
+        <button class="tab-btn active" id="tabRegistrationsBtn" data-tab="registrations">
+            <i class="fa-solid fa-list"></i> Registrations
+        </button>
+        <button class="tab-btn" id="tabAuditBtn" data-tab="audit">
+            <i class="fa-solid fa-clock-rotate-left"></i> Audit Log
+        </button>
     </div>
 
-    <div class="toolbar">
-        <div class="search-wrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Search by name or email...">
+    <!-- Registrations tab -->
+    <div class="tab-panel active" id="panelRegistrations">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="num" id="statTotal">0</div>
+                <div class="label">Total registered</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="statToday">0</div>
+                <div class="label">Celebrating today</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="statWeek">0</div>
+                <div class="label">In the next 7 days</div>
+            </div>
         </div>
+
+        <div class="toolbar">
+            <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search by name or email...">
+            </div>
+        </div>
+
+        <div class="list" id="list"></div>
     </div>
 
-    <div class="list" id="list"></div>
+    <!-- Audit log tab -->
+    <div class="tab-panel" id="panelAudit">
+        <div class="list" id="auditList"></div>
+    </div>
+</div>
+
+<!-- Delete confirmation modal (static markup — no innerHTML used to populate it) -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="icon-badge"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="warn-text">This action cannot be undone</div>
+        <h2>Delete this registration?</h2>
+        <p>You're about to permanently remove <strong id="deleteTargetName"></strong> (<span id="deleteTargetEmail"></span>).</p>
+
+        <label for="deleteConfirmPassword">Enter your password to confirm</label>
+        <div class="pwd-wrap">
+            <input type="password" id="deleteConfirmPassword" autocomplete="current-password">
+            <button type="button" class="pwd-toggle" data-target="deleteConfirmPassword" aria-label="Show password">
+                <i class="fa-solid fa-eye"></i>
+            </button>
+        </div>
+        <div id="deleteError"></div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" id="deleteCancelBtn">Cancel</button>
+            <button type="button" class="btn-danger" id="deleteConfirmBtn">
+                <i class="fa-solid fa-trash"></i> <span id="deleteConfirmBtnText">Delete</span>
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -178,6 +320,38 @@ const SUPABASE_ANON_KEY = "sb_publishable_LgkpjXyvqJXnhI3qcFjDwA_jHDB9oWw";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let allRows = [];
+let currentAdminEmail = null;
+let pendingDeleteId = null;
+let pendingDeleteRow = null;
+
+// ============================================
+// SMALL UTILITIES
+// ============================================
+// Used only for values we deliberately build as HTML strings (the
+// registrations list). Escapes anything a public visitor could have
+// typed into the form (name/email) before it's inserted, so a name
+// like "<script>" can't run in the admin's browser.
+function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+
+// ============================================
+// PASSWORD SHOW/HIDE TOGGLE
+// (works for both the login form and the delete-confirm modal)
+// ============================================
+document.querySelectorAll('.pwd-toggle').forEach(btn => {
+    btn.addEventListener('click', function(){
+        const input = document.getElementById(this.dataset.target);
+        const icon = this.querySelector('i');
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        icon.classList.toggle('fa-eye', showing);
+        icon.classList.toggle('fa-eye-slash', !showing);
+        this.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+});
 
 // ============================================
 // AUTH
@@ -185,6 +359,7 @@ let allRows = [];
 async function checkSession(){
     const { data: { session } } = await sb.auth.getSession();
     if(session){
+        currentAdminEmail = session.user.email;
         showDashboard();
         loadBirthdays();
     }else{
@@ -199,6 +374,18 @@ function showLogin(){
 function showDashboard(){
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('dash').style.display = 'block';
+}
+
+async function logAction(action, details){
+    // Best-effort — if this fails (e.g. offline), we don't block the
+    // admin's actual action on it.
+    try{
+        await sb.from('audit_log').insert([{
+            actor_email: currentAdminEmail,
+            action,
+            details: details || null
+        }]);
+    }catch(e){ console.error('Audit log write failed:', e); }
 }
 
 document.getElementById('loginForm').addEventListener('submit', async function(e){
@@ -221,17 +408,37 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         errBox.style.display = 'block';
         return;
     }
+    currentAdminEmail = email;
     showDashboard();
     loadBirthdays();
+    logAction('login');
 });
 
 document.getElementById('signOutBtn').addEventListener('click', async function(){
     await sb.auth.signOut();
+    currentAdminEmail = null;
     showLogin();
 });
 
 // ============================================
-// DATA
+// TABS
+// ============================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function(){
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        if(this.dataset.tab === 'registrations'){
+            document.getElementById('panelRegistrations').classList.add('active');
+        }else{
+            document.getElementById('panelAudit').classList.add('active');
+            loadAuditLog();
+        }
+    });
+});
+
+// ============================================
+// REGISTRATIONS DATA
 // ============================================
 function daysUntilNextBirthday(dateStr){
     const bday = new Date(dateStr);
@@ -264,7 +471,7 @@ async function loadBirthdays(){
         .select('id, name, email, phone, birthday, image_url');
 
     if(error){
-        listEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><div>${error.message}</div></div>`;
+        listEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><div>${escapeHtml(error.message)}</div></div>`;
         return;
     }
 
@@ -289,35 +496,27 @@ function renderList(rows){
     listEl.innerHTML = rows.map(r => {
         const today = isToday(r.birthday);
         const initial = (r.name?.[0] || '?').toUpperCase();
+        const safeName = escapeHtml(r.name);
+        const safeEmail = escapeHtml(r.email);
         const avatar = r.image_url
-            ? `<img class="avatar" src="${r.image_url}" alt="${r.name}">`
-            : `<div class="avatar-fallback">${initial}</div>`;
+            ? `<img class="avatar" src="${escapeHtml(r.image_url)}" alt="${safeName}">`
+            : `<div class="avatar-fallback">${escapeHtml(initial)}</div>`;
         const bdayDisplay = new Date(r.birthday).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
         return `
         <div class="row ${today ? 'today' : ''}">
             ${avatar}
             <div class="row-info">
-                <div class="name">${r.name} ${today ? '<span class="today-badge">TODAY 🎉</span>' : ''}</div>
-                <div class="meta">${r.email}${r.phone ? ' · ' + r.phone : ''} · Born ${bdayDisplay}</div>
+                <div class="name">${safeName} ${today ? '<span class="today-badge">TODAY 🎉</span>' : ''}</div>
+                <div class="meta">${safeEmail}${r.phone ? ' · ' + escapeHtml(r.phone) : ''} · Born ${bdayDisplay}</div>
             </div>
             <div class="row-date">${formatUpcoming(r.birthday)}</div>
             <div class="row-actions">
-                <button title="Delete" onclick="deleteRow(${r.id})"><i class="fa-solid fa-trash"></i></button>
+                <button title="Delete" onclick="openDeleteConfirm(${r.id})"><i class="fa-solid fa-trash"></i></button>
             </div>
         </div>`;
     }).join('');
 }
-
-async function deleteRow(id){
-    if(!confirm('Remove this registration? This cannot be undone.')) return;
-    const { error } = await sb.from('birthdays').delete().eq('id', id);
-    if(error){ alert('Could not delete: ' + error.message); return; }
-    allRows = allRows.filter(r => r.id !== id);
-    renderStats();
-    applySearch();
-}
-window.deleteRow = deleteRow;
 
 function applySearch(){
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -327,6 +526,177 @@ function applySearch(){
     ));
 }
 document.getElementById('searchInput').addEventListener('input', applySearch);
+
+// ============================================
+// DELETE — confirmation modal + password re-entry
+// (modal markup is static HTML in the page; only text CONTENT is
+// updated via textContent below — no innerHTML is used here)
+// ============================================
+function openDeleteConfirm(id){
+    const row = allRows.find(r => r.id === id);
+    if(!row) return;
+    pendingDeleteId = id;
+    pendingDeleteRow = row;
+
+    document.getElementById('deleteTargetName').textContent = row.name;
+    document.getElementById('deleteTargetEmail').textContent = row.email;
+    document.getElementById('deleteConfirmPassword').value = '';
+    document.getElementById('deleteError').style.display = 'none';
+    document.getElementById('deleteError').textContent = '';
+
+    document.getElementById('deleteModal').classList.add('open');
+    document.getElementById('deleteConfirmPassword').focus();
+}
+window.openDeleteConfirm = openDeleteConfirm;
+
+function closeDeleteConfirm(){
+    document.getElementById('deleteModal').classList.remove('open');
+    pendingDeleteId = null;
+    pendingDeleteRow = null;
+}
+
+document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteConfirm);
+document.getElementById('deleteModal').addEventListener('click', function(e){
+    if(e.target === this) closeDeleteConfirm(); // click outside the card
+});
+
+document.getElementById('deleteConfirmBtn').addEventListener('click', async function(){
+    const password = document.getElementById('deleteConfirmPassword').value;
+    const errBox = document.getElementById('deleteError');
+    const btn = this;
+    const btnText = document.getElementById('deleteConfirmBtnText');
+
+    errBox.style.display = 'none';
+
+    if(!password){
+        errBox.textContent = 'Enter your password to confirm.';
+        errBox.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btnText.textContent = 'Verifying...';
+
+    // Re-authenticate as a safety check before deleting anything.
+    const { error: authError } = await sb.auth.signInWithPassword({
+        email: currentAdminEmail,
+        password
+    });
+
+    if(authError){
+        btn.disabled = false;
+        btnText.textContent = 'Delete';
+        errBox.textContent = 'Incorrect password.';
+        errBox.style.display = 'block';
+        return;
+    }
+
+    btnText.textContent = 'Deleting...';
+
+    const { error } = await sb.from('birthdays').delete().eq('id', pendingDeleteId);
+
+    btn.disabled = false;
+    btnText.textContent = 'Delete';
+
+    if(error){
+        errBox.textContent = 'Could not delete: ' + error.message;
+        errBox.style.display = 'block';
+        return;
+    }
+
+    const deletedRow = pendingDeleteRow;
+    allRows = allRows.filter(r => r.id !== pendingDeleteId);
+    renderStats();
+    applySearch();
+    closeDeleteConfirm();
+
+    logAction('delete', `${deletedRow.name} (${deletedRow.email})`);
+});
+
+// ============================================
+// AUDIT LOG
+// ============================================
+async function loadAuditLog(){
+    const listEl = document.getElementById('auditList');
+    listEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><div>Loading...</div></div>`;
+
+    const { data, error } = await sb
+        .from('audit_log')
+        .select('id, actor_email, action, details, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+    if(error){
+        listEl.innerHTML = '';
+        const err = document.createElement('div');
+        err.className = 'empty-state';
+        err.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        const msg = document.createElement('div');
+        msg.textContent = error.message;
+        err.appendChild(msg);
+        listEl.appendChild(err);
+        return;
+    }
+
+    renderAuditLog(data || []);
+}
+
+function renderAuditLog(rows){
+    const listEl = document.getElementById('auditList');
+    listEl.innerHTML = '';
+
+    if(rows.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
+        const msg = document.createElement('div');
+        msg.textContent = 'No activity recorded yet';
+        empty.appendChild(msg);
+        listEl.appendChild(empty);
+        return;
+    }
+
+    // Built with DOM methods + textContent (not innerHTML) since
+    // actor_email/details could in principle contain anything.
+    rows.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'audit-row';
+
+        const icon = document.createElement('div');
+        icon.className = 'audit-icon ' + (r.action === 'delete' ? 'delete' : 'login');
+        const i = document.createElement('i');
+        i.className = 'fa-solid ' + (r.action === 'delete' ? 'fa-trash' : 'fa-right-to-bracket');
+        icon.appendChild(i);
+
+        const info = document.createElement('div');
+        info.className = 'audit-info';
+
+        const line1 = document.createElement('div');
+        line1.className = 'line1';
+        line1.textContent = r.action === 'delete'
+            ? `${r.actor_email} deleted a registration`
+            : `${r.actor_email} logged in`;
+        info.appendChild(line1);
+
+        if(r.details){
+            const line2 = document.createElement('div');
+            line2.className = 'line2';
+            line2.textContent = r.details;
+            info.appendChild(line2);
+        }
+
+        const time = document.createElement('div');
+        time.className = 'audit-time';
+        time.textContent = new Date(r.created_at).toLocaleString(undefined, {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        row.appendChild(icon);
+        row.appendChild(info);
+        row.appendChild(time);
+        listEl.appendChild(row);
+    });
+}
 
 // ============================================
 // INIT
