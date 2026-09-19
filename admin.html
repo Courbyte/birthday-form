@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Birthday Admin</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+    :root{
+        --violet-900:#2e1f4d; --violet-700:#5b3e8e; --violet-500:#7c5cd6; --violet-100:#efe9fb;
+        --coral:#ff6f61; --ink:#2b2440; --muted:#6f677f; --paper:#ffffff; --line:#e6e1f2;
+        --today-bg:#fff2e0; --today-line:#f6c97a; --today-fg:#8a5a00;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+        font-family:'Inter',sans-serif; color:var(--ink); min-height:100vh;
+        background:
+            radial-gradient(circle at 15% 10%, rgba(255,111,97,0.25), transparent 45%),
+            radial-gradient(circle at 85% 90%, rgba(124,92,214,0.35), transparent 50%),
+            linear-gradient(160deg, var(--violet-900) 0%, var(--violet-700) 55%, var(--violet-500) 100%);
+        padding:28px 16px;
+    }
+
+    /* ---- Login screen ---- */
+    .login-wrap{
+        max-width:380px; margin:80px auto 0;
+        background:var(--paper); border-radius:18px; padding:36px 30px;
+        box-shadow:0 25px 60px rgba(46,31,77,0.35); text-align:center;
+    }
+    .login-wrap .icon-badge{
+        width:56px;height:56px;border-radius:50%;background:var(--violet-100);color:var(--violet-700);
+        display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem;
+    }
+    .login-wrap h1{font-family:'Fredoka',sans-serif;font-size:1.4rem;color:var(--violet-700);margin-bottom:6px;}
+    .login-wrap p{color:var(--muted);font-size:0.88rem;margin-bottom:22px;}
+    .login-wrap label{display:block;text-align:left;font-size:0.85rem;font-weight:600;margin:0 0 6px;color:var(--ink);}
+    .login-wrap input{
+        width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:9px;
+        font-size:15px;margin-bottom:14px;background:#faf9fd;font-family:'Inter',sans-serif;
+    }
+    .login-wrap input:focus{outline:none;border-color:var(--violet-500);background:#fff;}
+    .login-wrap button{
+        width:100%;padding:13px;border:none;border-radius:9px;cursor:pointer;
+        background:linear-gradient(135deg,var(--violet-700),var(--violet-500));color:#fff;
+        font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .login-wrap button:disabled{opacity:0.6;cursor:not-allowed;}
+    #loginError{color:#9c2b22;font-size:0.85rem;margin-top:12px;display:none;}
+
+    /* ---- Dashboard ---- */
+    .dash{max-width:840px;margin:0 auto;display:none;}
+    .dash-header{
+        display:flex;justify-content:space-between;align-items:center;
+        background:var(--paper);border-radius:16px;padding:20px 24px;margin-bottom:18px;
+        box-shadow:0 15px 40px rgba(46,31,77,0.25);
+    }
+    .dash-header h1{font-family:'Fredoka',sans-serif;font-size:1.3rem;color:var(--violet-700);display:flex;align-items:center;gap:10px;}
+    .dash-header button{
+        background:none;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;
+        cursor:pointer;font-size:0.85rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;
+    }
+    .dash-header button:hover{border-color:var(--coral);color:var(--coral);}
+
+    .stats{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+    .stat-card{
+        flex:1;min-width:140px;background:var(--paper);border-radius:14px;padding:16px 18px;
+        box-shadow:0 10px 25px rgba(46,31,77,0.18);
+    }
+    .stat-card .num{font-family:'Fredoka',sans-serif;font-size:1.6rem;color:var(--violet-700);}
+    .stat-card .label{font-size:0.8rem;color:var(--muted);margin-top:2px;}
+
+    .toolbar{margin-bottom:14px;}
+    .search-wrap{position:relative;}
+    .search-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#b5abd6;}
+    .search-wrap input{
+        width:100%;padding:12px 14px 12px 40px;border:1.5px solid var(--line);border-radius:10px;
+        font-size:14px;background:var(--paper);font-family:'Inter',sans-serif;
+    }
+    .search-wrap input:focus{outline:none;border-color:var(--violet-500);}
+
+    .list{background:var(--paper);border-radius:16px;box-shadow:0 15px 40px rgba(46,31,77,0.2);overflow:hidden;}
+    .row{
+        display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);
+    }
+    .row:last-child{border-bottom:none;}
+    .row.today{background:var(--today-bg);}
+    .avatar{
+        width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--violet-100);
+    }
+    .avatar-fallback{
+        width:44px;height:44px;border-radius:50%;background:var(--violet-500);color:#fff;
+        display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;
+    }
+    .row-info{flex:1;min-width:0;}
+    .row-info .name{font-weight:600;font-size:0.95rem;display:flex;align-items:center;gap:8px;}
+    .row-info .meta{font-size:0.8rem;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .today-badge{
+        background:var(--today-fg);color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;
+        border-radius:20px;letter-spacing:0.3px;
+    }
+    .row-date{font-size:0.82rem;color:var(--violet-700);font-weight:600;white-space:nowrap;margin-right:6px;}
+    .row-actions button{
+        background:none;border:none;color:#c9c2dd;cursor:pointer;font-size:0.95rem;padding:8px;
+    }
+    .row-actions button:hover{color:#e05a4a;}
+    .empty-state{padding:40px 20px;text-align:center;color:var(--muted);}
+    .empty-state i{font-size:1.8rem;color:var(--violet-100);margin-bottom:10px;display:block;}
+
+    @media (max-width:480px){
+        .row-info .meta{white-space:normal;}
+        .row-date{display:none;}
+    }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-wrap" id="loginWrap">
+    <div class="icon-badge"><i class="fa-solid fa-lock"></i></div>
+    <h1>Admin Login</h1>
+    <p>Sign in to view and manage birthday registrations</p>
+    <form id="loginForm">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required autocomplete="username">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+        <button type="submit" id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> Sign in</button>
+    </form>
+    <div id="loginError"></div>
+</div>
+
+<!-- Dashboard -->
+<div class="dash" id="dash">
+    <div class="dash-header">
+        <h1><i class="fa-solid fa-cake-candles"></i> Birthday Admin</h1>
+        <button id="signOutBtn"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="num" id="statTotal">0</div>
+            <div class="label">Total registered</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" id="statToday">0</div>
+            <div class="label">Celebrating today</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" id="statWeek">0</div>
+            <div class="label">In the next 7 days</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search by name or email...">
+        </div>
+    </div>
+
+    <div class="list" id="list"></div>
+</div>
+
+<script>
+(function(){
+const SUPABASE_URL = "https://lyobzlsggqmuwampgftc.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_LgkpjXyvqJXnhI3qcFjDwA_jHDB9oWw";
+// Named "sb" (not "supabase") on purpose — the library itself exposes
+// a global called window.supabase, and reusing that name for our own
+// client caused a "supabase has already been declared" error in some
+// environments (e.g. live-reload tools that re-run this script).
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allRows = [];
+
+// ============================================
+// AUTH
+// ============================================
+async function checkSession(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){
+        showDashboard();
+        loadBirthdays();
+    }else{
+        showLogin();
+    }
+}
+
+function showLogin(){
+    document.getElementById('loginWrap').style.display = 'block';
+    document.getElementById('dash').style.display = 'none';
+}
+function showDashboard(){
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+}
+
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    const errBox = document.getElementById('loginError');
+    errBox.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in...';
+
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign in';
+
+    if(error){
+        errBox.textContent = error.message;
+        errBox.style.display = 'block';
+        return;
+    }
+    showDashboard();
+    loadBirthdays();
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async function(){
+    await sb.auth.signOut();
+    showLogin();
+});
+
+// ============================================
+// DATA
+// ============================================
+function daysUntilNextBirthday(dateStr){
+    const bday = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    let next = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
+    if(next < today) next = new Date(today.getFullYear() + 1, bday.getMonth(), bday.getDate());
+    return Math.round((next - today) / (1000 * 60 * 60 * 24));
+}
+
+function isToday(dateStr){
+    const bday = new Date(dateStr);
+    const today = new Date();
+    return bday.getMonth() === today.getMonth() && bday.getDate() === today.getDate();
+}
+
+function formatUpcoming(dateStr){
+    const days = daysUntilNextBirthday(dateStr);
+    if(days === 0) return "Today!";
+    if(days === 1) return "Tomorrow";
+    return `In ${days} days`;
+}
+
+async function loadBirthdays(){
+    const listEl = document.getElementById('list');
+    listEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><div>Loading...</div></div>`;
+
+    const { data, error } = await sb
+        .from('birthdays')
+        .select('id, name, email, phone, birthday, image_url');
+
+    if(error){
+        listEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><div>${error.message}</div></div>`;
+        return;
+    }
+
+    allRows = (data || []).sort((a,b) => daysUntilNextBirthday(a.birthday) - daysUntilNextBirthday(b.birthday));
+    renderStats();
+    renderList(allRows);
+}
+
+function renderStats(){
+    document.getElementById('statTotal').textContent = allRows.length;
+    document.getElementById('statToday').textContent = allRows.filter(r => isToday(r.birthday)).length;
+    document.getElementById('statWeek').textContent = allRows.filter(r => daysUntilNextBirthday(r.birthday) <= 7).length;
+}
+
+function renderList(rows){
+    const listEl = document.getElementById('list');
+    if(rows.length === 0){
+        listEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox"></i><div>No registrations found</div></div>`;
+        return;
+    }
+
+    listEl.innerHTML = rows.map(r => {
+        const today = isToday(r.birthday);
+        const initial = (r.name?.[0] || '?').toUpperCase();
+        const avatar = r.image_url
+            ? `<img class="avatar" src="${r.image_url}" alt="${r.name}">`
+            : `<div class="avatar-fallback">${initial}</div>`;
+        const bdayDisplay = new Date(r.birthday).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+        return `
+        <div class="row ${today ? 'today' : ''}">
+            ${avatar}
+            <div class="row-info">
+                <div class="name">${r.name} ${today ? '<span class="today-badge">TODAY 🎉</span>' : ''}</div>
+                <div class="meta">${r.email}${r.phone ? ' · ' + r.phone : ''} · Born ${bdayDisplay}</div>
+            </div>
+            <div class="row-date">${formatUpcoming(r.birthday)}</div>
+            <div class="row-actions">
+                <button title="Delete" onclick="deleteRow(${r.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function deleteRow(id){
+    if(!confirm('Remove this registration? This cannot be undone.')) return;
+    const { error } = await sb.from('birthdays').delete().eq('id', id);
+    if(error){ alert('Could not delete: ' + error.message); return; }
+    allRows = allRows.filter(r => r.id !== id);
+    renderStats();
+    applySearch();
+}
+window.deleteRow = deleteRow;
+
+function applySearch(){
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    if(!q){ renderList(allRows); return; }
+    renderList(allRows.filter(r =>
+        r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)
+    ));
+}
+document.getElementById('searchInput').addEventListener('input', applySearch);
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', checkSession);
+})();
+</script>
+</body>
+</html>
